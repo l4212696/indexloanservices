@@ -15,44 +15,49 @@ const pool = new Pool({
 });
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../')));
 
-// Ensure schema table exists in Neon PostgreSQL
-async function initDatabase() {
-  const query = `
-    CREATE TABLE IF NOT EXISTS loan_applications (
-      id SERIAL PRIMARY KEY,
-      full_name VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      referred_by VARCHAR(255),
-      amount NUMERIC(12, 2) NOT NULL,
-      repay_date DATE NOT NULL,
-      reason TEXT,
-      payment_method VARCHAR(100) NOT NULL,
-      payment_handle VARCHAR(255),
-      bank_name VARCHAR(255),
-      account_number VARCHAR(100),
-      routing_number VARCHAR(100),
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
-  try {
-    await pool.query(query);
-    console.log('[DB] Loan applications table initialized.');
-  } catch (err) {
-    console.error('[DB Error] Failed to initialize table:', err.message);
+// SSN Validation Function (same rules as client)
+function validateSSN(ssn) {
+  if (!ssn) return { valid: false, error: 'SSN is required' };
+  
+  const clean = ssn.toString().replace(/[\s-]/g, '');
+  
+  if (!/^\d{9}$/.test(clean)) {
+    return { valid: false, error: 'SSN must be 9 digits' };
   }
+  
+  const area = parseInt(clean.substring(0, 3), 10);
+  const group = parseInt(clean.substring(3, 5), 10);
+  const serial = parseInt(clean.substring(5, 9), 10);
+  
+  if (area === 0 && group === 0 && serial === 0) {
+    return { valid: false, error: 'Invalid SSN format' };
+  }
+  
+  if (area === 0) return { valid: false, error: 'Area number cannot be 000' };
+  if (area === 666) return { valid: false, error: 'Area number 666 is not valid' };
+  if (area >= 900 && area <= 999) return { valid: false, error: 'Area numbers 900-999 are not valid' };
+  if (group === 0) return { valid: false, error: 'Group number cannot be 00' };
+  if (serial === 0) return { valid: false, error: 'Serial number cannot be 0000' };
+  
+  const invalidSSNs = ['078051120', '219099999', '457555462'];
+  if (invalidSSNs.includes(clean)) {
+    return { valid: false, error: 'Invalid SSN' };
+  }
+  
+  return { valid: true, error: null };
 }
 
-initDatabase();
-
+// API Routes (MUST be before static middleware)
 app.post('/api/apply', async (req, res) => {
+  console.log('[API] Received application:', req.body);
+  
   const {
     fullName,
     email,
+    ssn,
     amount,
     repayDate,
-    referredBy,
     reason,
     paymentMethod,
     paymentHandle,
@@ -63,12 +68,19 @@ app.post('/api/apply', async (req, res) => {
 
   const errors = {};
 
+  // Validation
   if (!fullName || typeof fullName !== 'string' || !fullName.trim()) {
     errors.fullName = 'Full legal name is required.';
   }
 
   if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.email = 'A valid email address is required.';
+  }
+
+  // SSN Validation
+  const ssnValidation = validateSSN(ssn);
+  if (!ssnValidation.valid) {
+    errors.ssn = ssnValidation.error;
   }
 
   const numericAmount = parseFloat(amount);
@@ -85,6 +97,7 @@ app.post('/api/apply', async (req, res) => {
   }
 
   if (Object.keys(errors).length > 0) {
+    console.log('[API] Validation errors:', errors);
     return res.status(400).json({
       error: 'Validation failed. Please correct the highlighted fields.',
       errors
@@ -96,7 +109,7 @@ app.post('/api/apply', async (req, res) => {
       INSERT INTO loan_applications (
         full_name,
         email,
-        referred_by,
+        ssn,
         amount,
         repay_date,
         reason,
@@ -112,7 +125,7 @@ app.post('/api/apply', async (req, res) => {
     const values = [
       fullName.trim(),
       email.trim(),
-      referredBy ? referredBy.trim() : null,
+      ssn.toString().replace(/-/g, ''), // Store clean SSN
       numericAmount,
       repayDate,
       reason ? reason.trim() : null,
@@ -124,6 +137,7 @@ app.post('/api/apply', async (req, res) => {
     ];
 
     const result = await pool.query(insertQuery, values);
+    console.log('[API] Application saved:', result.rows[0]);
 
     return res.status(201).json({
       message: 'Application submitted successfully. Reference ID: ' + result.rows[0].id,
@@ -137,6 +151,69 @@ app.post('/api/apply', async (req, res) => {
   }
 });
 
+// Static files AFTER API routes
+app.use(express.static(path.join(__dirname, '../')));
+
+// Fallback for SPA (if needed)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
+// Ensure schema table exists in Neon PostgreSQL
+async function initDatabase() {
+  const query = `
+    CREATE TABLE IF NOT EXISTS loan_applications (
+      id SERIAL PRIMARY KEY,
+      full_name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      ssn VARCHAR(11) NOT NULL,
+      amount NUMERIC(12, 2) NOT NULL,
+      repay_date DATE NOT NULL,
+      reason TEXT,
+      payment_method VARCHAR(100) NOT NULL,
+      payment_handle VARCHAR(255),
+      bank_name VARCHAR(255),
+      account_number VARCHAR(100),
+      routing_number VARCHAR(100),
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    -- Add SSN column if table exists but column doesn't (for migration)
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'loan_applications'
+      ) THEN
+        IF NOT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'loan_applications' AND column_name = 'ssn'
+        ) THEN
+          ALTER TABLE loan_applications ADD COLUMN ssn VARCHAR(11);
+        END IF;
+        
+        -- Drop old referred_by column if it exists
+        IF EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = 'loan_applications' AND column_name = 'referred_by'
+        ) THEN
+          ALTER TABLE loan_applications DROP COLUMN referred_by;
+        END IF;
+      END IF;
+    END $$;
+  `;
+  
+  try {
+    await pool.query(query);
+    console.log('[DB] Loan applications table initialized with SSN column.');
+  } catch (err) {
+    console.error('[DB Error] Failed to initialize table:', err.message);
+  }
+}
+
+initDatabase();
+
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`API endpoint: http://localhost:${PORT}/api/apply`);
 });
