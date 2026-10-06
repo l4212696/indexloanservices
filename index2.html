@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply for Instant Loan | Index Loan Services</title>
+  <style>
+    :root {
+      --green: #008555;
+      --green-dark: #006a44;
+      --green-tint: #e6f2ed;
+      --ink: #231f20;
+      --ink-soft: #636262;
+      --line: #d3d2d2;
+      --bg: #f4f4f3;
+      --error: #ad3000;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      font-family: "Fira Sans", Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+
+    header { background: #fff; border-bottom: 4px solid var(--green); }
+
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--green-tint);
+    }
+
+    .hero { background: #fff; padding: 40px 0 28px; }
+
+    .hero h1 { margin: 0 0 8px; font-size: 32px; font-weight: 700; line-height: 1.2; }
+
+    .hero p { margin: 0; color: var(--ink-soft); font-size: 17px; }
+
+    .promise {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 10px 14px;
+      background: var(--green-tint);
+      color: var(--green-dark);
+      border: 1px solid #b5d9c9;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    main { padding: 28px 0 60px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 1px 3px rgba(35, 31, 32, 0.06);
+    }
+
+    fieldset { border: 0; padding: 0; margin: 0 0 28px; }
+
+    legend {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--green);
+      padding: 0 0 8px;
+      margin-bottom: 14px;
+      width: 100%;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+
+    .full { grid-column: 1 / -1; }
+
+    label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+
+    input, select, textarea {
+      width: 100%;
+      font: inherit;
+      font-size: 16px;
+      color: var(--ink);
+      padding: 11px 12px;
+      border: 1px solid #bfbebe;
+      border-radius: var(--radius);
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    select { appearance: auto; }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(0, 133, 85, 0.18);
+    }
+
+    .amount-wrap { position: relative; }
+    .amount-wrap span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-soft);
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .amount-wrap input { padding-left: 26px; }
+
+    .hint { font-size: 13px; color: var(--ink-soft); margin-top: 5px; }
+
+    .field-error { font-size: 13px; color: var(--error); margin-top: 5px; }
+
+    input.invalid, select.invalid, textarea.invalid { border-color: var(--error); }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    .actions small { color: var(--ink-soft); font-size: 13px; max-width: 360px; }
+
+    button[type="submit"] {
+      background: var(--green);
+      color: #fff;
+      border: 0;
+      border-radius: 30px;
+      padding: 14px 36px;
+      font: inherit;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    button[type="submit"]:hover { background: var(--green-dark); }
+    button[type="submit"]:disabled { background: #9bc7b5; cursor: wait; }
+
+    .status {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      display: none;
+    }
+    .status.ok { display: block; background: var(--green-tint); color: var(--green-dark); border: 1px solid #b5d9c9; }
+    .status.err { display: block; background: #fbeee8; color: var(--error); border: 1px solid #efc7b5; }
+
+    footer { font-size: 12px; color: var(--ink-soft); padding: 24px 0 40px; border-top: 1px solid var(--line); background: #fff; }
+    footer p { margin: 0 0 8px; }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 26px; }
+      .grid { grid-template-columns: 1fr; }
+      .card { padding: 20px; }
+      .actions button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-logo" src="https://media.istockphoto.com/id/1422839825/vector/abstract-money-paper-bills-and-gold-coins-3d-dollar-banknotes-currency-bank-notes-finance.jpg" alt="Index Loan Services logo">
+      Index Loan Services
+    </a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Apply for Instant loan</h1>
+    <p>Tell us a little about yourself and what you need. It takes about five minutes.</p>
+    <div class="promise">&#9201; We'll contact you within 24 hours about your application.</div>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+    <form class="card" id="loanForm" novalidate>
+
+      <fieldset>
+        <legend>About you</legend>
+        <div class="grid">
+          <div class="full">
+            <label for="fullName">Full name</label>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" required>
+            <div class="field-error" data-for="fullName"></div>
+          </div>
+          <div class="full">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required>
+            <div class="field-error" data-for="email"></div>
+          </div>
+          <div>
+            <label for="referredBy">Who referred you?</label>
+            <input id="referredBy" name="referredBy" type="text" placeholder="Name or leave blank">
+            <div class="field-error" data-for="referredBy"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Loan details</legend>
+        <div class="grid">
+          <div>
+            <label for="amount">Amount needed</label>
+            <div class="amount-wrap">
+              <span>$</span>
+              <input id="amount" name="amount" type="number" min="1" max="10000" step="1" inputmode="numeric">
+            </div>
+            <div class="hint">Up to $10,000</div>
+            <div class="field-error" data-for="amount"></div>
+          </div>
+          <div>
+            <label for="repayDate">Repayment date</label>
+            <input id="repayDate" name="repayDate" type="date" required>
+            <div class="field-error" data-for="repayDate"></div>
+          </div>
+          <div class="full">
+            <label for="reason">Reason for loan</label>
+            <textarea id="reason" name="reason" placeholder="For example: car repair, medical bill, moving costs"></textarea>
+            <div class="field-error" data-for="reason"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Payment account</legend>
+        <div class="grid">
+          <div class="full">
+            <label for="paymentMethod">Payment method</label>
+            <select id="paymentMethod" name="paymentMethod">
+              <option value="">Select one...</option>
+              <optgroup label="Online wallets (username)">
+                <option value="venmo">Venmo</option>
+                <option value="paypal">PayPal</option>
+                <option value="cashapp">Cash App</option>
+                <option value="chime">Chime</option>
+                <option value="zelle">Zelle (email or phone)</option>
+                <option value="wise">Wise</option>
+                <option value="revolut">Revolut</option>
+                <option value="sofi">SoFi</option>
+                <option value="current">Current</option>
+                <option value="varo">Varo</option>
+              </optgroup>
+              <optgroup label="Bank account">
+                <option value="bank">My bank account</option>
+              </optgroup>
+            </select>
+            <div class="field-error" data-for="paymentMethod"></div>
+          </div>
+
+          <div class="full" id="walletBlock" hidden>
+            <label for="paymentHandle">Username, handle, or $Cashtag</label>
+            <input id="paymentHandle" name="paymentHandle" type="text" placeholder="@yourname, $cashtag, or email/phone">
+            <div class="field-error" data-for="paymentHandle"></div>
+          </div>
+
+          <div class="full" id="bankBlock" hidden>
+            <label for="bankName">Bank</label>
+            <select id="bankName" name="bankName">
+              <option value="">Select your bank...</option>
+              <option>Ally Bank</option>
+              <option>Bank of America</option>
+              <option>BMO Harris</option>
+              <option>Capital One</option>
+              <option>Chase</option>
+              <option>Citibank</option>
+              <option>Citizens Bank</option>
+              <option>Discover Bank</option>
+              <option>Fifth Third Bank</option>
+              <option>Huntington National Bank</option>
+              <option>KeyBank</option>
+              <option>Navy Federal Credit Union</option>
+              <option>PNC Bank</option>
+              <option>Regions Bank</option>
+              <option>Synchrony Bank</option>
+              <option>TD Bank</option>
+              <option>Truist</option>
+              <option>U.S. Bank</option>
+              <option>USAA</option>
+              <option>Wells Fargo</option>
+              <option>Other</option>
+            </select>
+            <div class="field-error" data-for="bankName"></div>
+          </div>
+          <div id="accountBlock" hidden>
+            <label for="accountNumber">Account number</label>
+            <input id="accountNumber" name="accountNumber" type="text" inputmode="numeric" autocomplete="off" placeholder="Digits only">
+            <div class="field-error" data-for="accountNumber"></div>
+          </div>
+          <div id="routingBlock" hidden>
+            <label for="routingNumber">Routing number</label>
+            <input id="routingNumber" name="routingNumber" type="text" inputmode="numeric" autocomplete="off" placeholder="9 digits" maxlength="9">
+            <div class="field-error" data-for="routingNumber"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <small>By submitting, you agree that we may contact you about this application.</small>
+        <button type="submit" id="submitBtn">Submit application</button>
+      </div>
+
+      <div class="status" id="status" role="status"></div>
+    </form>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>All loans are subject to approval after evaluation</p>
+    <p>&copy; <span id="year"></span> Index Loan Services. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  const form = document.getElementById("loanForm");
+  const statusBox = document.getElementById("status");
+  const submitBtn = document.getElementById("submitBtn");
+  const methodSelect = document.getElementById("paymentMethod");
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById("repayDate").min = tomorrow.toISOString().slice(0, 10);
+
+  // Show wallet username field or bank fields depending on the selected method.
+  function togglePaymentFields() {
+    const isBank = methodSelect.value === "bank";
+    const isWallet = methodSelect.value !== "" && !isBank;
+    document.getElementById("walletBlock").hidden = !isWallet;
+    document.getElementById("bankBlock").hidden = !isBank;
+    document.getElementById("accountBlock").hidden = !isBank;
+    document.getElementById("routingBlock").hidden = !isBank;
+  }
+  methodSelect.addEventListener("change", togglePaymentFields);
+
+  function clearErrors() {
+    form.querySelectorAll(".field-error").forEach(el => (el.textContent = ""));
+    form.querySelectorAll(".invalid").forEach(el => el.classList.remove("invalid"));
+    statusBox.className = "status";
+    statusBox.textContent = "";
+  }
+
+  function showErrors(errors) {
+    Object.entries(errors).forEach(([key, msg]) => {
+      const holder = form.querySelector(`[data-for="${key}"]`);
+      if (holder) holder.textContent = msg;
+      const input = form.querySelector(`[name="${key}"]`);
+      if (input) input.classList.add("invalid");
+    });
+    const first = Object.keys(errors)[0];
+    const target = form.querySelector(`[name="${first}"]`);
+    if (target && !target.closest("[hidden]")) target.focus();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const fd = new FormData(form);
+    const method = fd.get("paymentMethod") || "";
+    const isBank = method === "bank";
+
+    const payload = {
+      fullName: fd.get("fullName"),
+      email: fd.get("email"),
+      amount: fd.get("amount"),
+      repayDate: fd.get("repayDate"),
+      referredBy: fd.get("referredBy"),
+      reason: fd.get("reason"),
+      paymentMethod: method,
+      paymentHandle: isBank ? "" : fd.get("paymentHandle"),
+      bankName: isBank ? fd.get("bankName") : "",
+      accountNumber: isBank ? fd.get("accountNumber") : "",
+      routingNumber: isBank ? fd.get("routingNumber") : "",
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    try {
+      const res = await fetch("/api/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        if (result.errors) showErrors(result.errors);
+        statusBox.className = "status err";
+        statusBox.textContent = result.error || "Something went wrong. Please try again.";
+        return;
+      }
+
+      form.reset();
+      togglePaymentFields();
+      statusBox.className = "status ok";
+      statusBox.textContent = result.message;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      statusBox.className = "status err";
+      statusBox.textContent = "Network error. Please check your connection and try again.";
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit application";
+    }
+  });
+</script>
+</body>
+</html>
