@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Loan Application | Index Financial Services</title>
+  <title>Instant Loan Application | Index Financial Services</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" type="image/x-icon" href="favicon.png">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -236,6 +237,7 @@
 
     input.invalid, select.invalid, textarea.invalid {
       border-color: var(--error-color);
+      background-color: var(--error-bg);
     }
 
     .actions {
@@ -338,7 +340,7 @@
 
 <section class="hero">
   <div class="container">
-    <h1>Loan Application</h1>
+    <h1>Instant Loan Application</h1>
     <p>Complete the form below to submit your financing request for review.</p>
     <div class="badge-notice">Standard decision review within 24 business hours</div>
   </div>
@@ -362,9 +364,9 @@
             <div class="field-error" data-for="email"></div>
           </div>
           <div class="form-group full-width">
-            <label for="referredBy">Referral Code or Representative (Optional)</label>
-            <input id="referredBy" name="referredBy" type="text">
-            <div class="field-error" data-for="referredBy"></div>
+            <label for="ssn">Social Security Number</label>
+            <input id="ssn" name="ssn" type="text" inputmode="numeric" maxlength="11" placeholder="XXX-XX-XXXX" required>
+            <div class="field-error" data-for="ssn"></div>
           </div>
         </div>
       </fieldset>
@@ -457,12 +459,116 @@
   const statusMessage = document.getElementById("statusMessage");
   const submitBtn = document.getElementById("submitBtn");
   const methodSelect = document.getElementById("paymentMethod");
+  const ssnInput = document.getElementById("ssn");
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   document.getElementById("repayDate").min = tomorrow.toISOString().slice(0, 10);
+
+  // SSN Validation Rules
+  function validateSSN(ssn) {
+    // Remove any dashes and spaces
+    const clean = ssn.replace(/[\s-]/g, "");
+    
+    // Must be exactly 9 digits
+    if (!/^\d{9}$/.test(clean)) {
+      return { valid: false, error: "SSN must be 9 digits (XXX-XX-XXXX)" };
+    }
+    
+    const area = parseInt(clean.substring(0, 3), 10);
+    const group = parseInt(clean.substring(3, 5), 10);
+    const serial = parseInt(clean.substring(5, 9), 10);
+    
+    // Check for all zeros (invalid SSN)
+    if (area === 0 && group === 0 && serial === 0) {
+      return { valid: false, error: "Invalid SSN format" };
+    }
+    
+    // Area Number (AAA) validations
+    if (area === 0) {
+      return { valid: false, error: "Area number cannot be 000" };
+    }
+    if (area === 666) {
+      return { valid: false, error: "Area number 666 is not valid" };
+    }
+    if (area >= 900 && area <= 999) {
+      return { valid: false, error: "Area numbers 900-999 are not valid" };
+    }
+    
+    // Group Number (GG) validation
+    if (group === 0) {
+      return { valid: false, error: "Group number cannot be 00" };
+    }
+    
+    // Serial Number (SSSS) validation
+    if (serial === 0) {
+      return { valid: false, error: "Serial number cannot be 0000" };
+    }
+    
+    // Check for known invalid/test SSNs
+    const invalidSSNs = [
+      "078051120", // Used in advertising
+      "219099999", // Test pattern
+      "457555462"  // Test pattern
+    ];
+    if (invalidSSNs.includes(clean)) {
+      return { valid: false, error: "Invalid SSN" };
+    }
+    
+    return { valid: true, error: null };
+  }
+
+  // Auto-format SSN as user types (XXX-XX-XXXX)
+  ssnInput.addEventListener("input", (e) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 9) value = value.slice(0, 9);
+    
+    if (value.length >= 5) {
+      value = value.slice(0, 3) + "-" + value.slice(3, 5) + "-" + value.slice(5);
+    } else if (value.length >= 3) {
+      value = value.slice(0, 3) + "-" + value.slice(3);
+    }
+    
+    e.target.value = value;
+    
+    // Real-time validation after complete entry
+    const clean = value.replace(/-/g, "");
+    const errorEl = document.querySelector('[data-for="ssn"]');
+    
+    if (clean.length === 9) {
+      const validation = validateSSN(value);
+      if (!validation.valid) {
+        ssnInput.classList.add("invalid");
+        errorEl.textContent = validation.error;
+      } else {
+        ssnInput.classList.remove("invalid");
+        errorEl.textContent = "";
+      }
+    } else {
+      ssnInput.classList.remove("invalid");
+      errorEl.textContent = "";
+    }
+  });
+
+  // Validate on blur as well
+  ssnInput.addEventListener("blur", () => {
+    const value = ssnInput.value;
+    const clean = value.replace(/-/g, "");
+    const errorEl = document.querySelector('[data-for="ssn"]');
+    
+    if (value.length > 0) {
+      const validation = validateSSN(value);
+      if (!validation.valid) {
+        ssnInput.classList.add("invalid");
+        errorEl.textContent = validation.error;
+      } else {
+        ssnInput.classList.remove("invalid");
+        errorEl.textContent = "";
+      }
+    }
+  });
 
   function togglePaymentFields() {
     const isBank = methodSelect.value === "bank";
@@ -501,12 +607,22 @@
     const method = fd.get("paymentMethod") || "";
     const isBank = method === "bank";
 
+    // Validate SSN before submission
+    const ssnValue = fd.get("ssn") || "";
+    const ssnValidation = validateSSN(ssnValue);
+    
+    if (!ssnValidation.valid) {
+      const errors = { ssn: ssnValidation.error };
+      showErrors(errors);
+      return;
+    }
+
     const payload = {
       fullName: fd.get("fullName"),
       email: fd.get("email"),
+      ssn: ssnValue.replace(/-/g, ""), // Send clean SSN to server
       amount: fd.get("amount"),
       repayDate: fd.get("repayDate"),
-      referredBy: fd.get("referredBy"),
       reason: fd.get("reason"),
       paymentMethod: method,
       paymentHandle: isBank ? "" : fd.get("paymentHandle"),
