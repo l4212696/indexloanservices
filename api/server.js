@@ -187,6 +187,10 @@ function validate(body) {
 // ---------------------------------------------------------------------------
 const app = express();
 app.use(express.json({ limit: "20kb" }));
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Server error", detail: err.message });
+});
 
 const ROOT = path.join(__dirname, "..");
 
